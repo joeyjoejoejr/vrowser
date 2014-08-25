@@ -1,32 +1,42 @@
 'use strict';
 
-app.controller('MainController', ['$scope', 'normalModeListeners', '$sce',
-    function($scope, normalModeListeners, $sce) {
-      var modeListeners = {
-        normal: normalModeListeners,
-        command: { listen: function() { console.log("command mode") } }
-      };
-      $scope.vrowserControls = {
-        defaultUrl: $sce.trustAsResourceUrl("http://google.com"),
-        url: "",
-        changeMode: function (mode) {
-          $scope.$apply(function() {
-            $scope.mode = mode;
-          });
-        }
-      };
+app.controller('MainController', ['$scope', 'normalModeListeners', 
+  'commandModeListeners', '$sce',
+  function($scope, normalModeListeners, commandModeListeners, $sce) {
+    var modeListeners = {
+      normal: normalModeListeners,
+      command: commandModeListeners
+    };
 
-      $scope.mode = "normal";
-      modeListeners.normal.setupListeners($scope.vrowserControls);
-      modeListeners.normal.listen();
+    $scope.vrowserControls = {
+      commandText: '',
+      defaultUrl: $sce.trustAsResourceUrl("http://google.com"),
+      url: "",
+      changeMode: function (mode) {
+        $scope.$apply(function() {
+          $scope.mode = mode;
+        });
+      },
+      // TODO: This should create and show a new webview
+      changeAddress: function(url) {
+        $scope.$apply(function() {
+          this.defaultUrl = $sce.trustAsResourceUrl(url);
+        }.bind(this));
+      }
+    };
 
-      $scope.$watch('mode', function (newMode, oldMode) {
-        console.log(newMode);
-        modeListeners[oldMode].stopListening();
-        modeListeners[newMode].listen();
-      });
+    $scope.mode = "normal";
+    modeListeners.normal.setupListeners($scope.vrowserControls);
+    modeListeners.command.setupListeners($scope.vrowserControls);
+    modeListeners.normal.listen();
 
-      $scope.$watch('vrowserControls.url', function() {
-        $scope.statusBar = "<Normal> " + $scope.vrowserControls.url;
-      });
-}]);
+    $scope.$watch('mode', function (newMode, oldMode) {
+      modeListeners[oldMode].stopListening();
+      modeListeners[newMode].listen();
+    });
+
+    $scope.$watch('vrowserControls.url', function() {
+      $scope.statusBar = "<" + mode + "> " + $scope.vrowserControls.url;
+    });
+  }
+]);

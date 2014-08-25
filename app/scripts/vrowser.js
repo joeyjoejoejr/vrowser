@@ -1,3 +1,3 @@
 'use strict';
 
-var app = angular.module('angVrowserApp', [])
+var app = angular.module('angVrowserApp', ['ngAnimate'])
